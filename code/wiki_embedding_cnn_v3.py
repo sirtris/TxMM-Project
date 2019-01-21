@@ -24,6 +24,52 @@ y = train.target.values
 print("done reading input files")
 print(test.head())
 
+## Preprocessing for word embeddings
+def build_vocab(sentences, verbose =  True):
+    """
+    :param sentences: list of list of words
+    :return: dictionary of words and their count
+    """
+    vocab = {}
+    for sentence in tqdm(sentences, disable = (not verbose)):
+        for word in sentence:
+            try:
+                vocab[word] += 1
+            except KeyError:
+                vocab[word] = 1
+    return vocab
+
+from tqdm import tqdm
+tqdm.pandas()
+
+sentences = train["question_text"].progress_apply(lambda x: x.split()).values
+vocab = build_vocab(sentences)
+print({k: vocab[k] for k in list(vocab)[:5]})
+
+# Load embdeddings file and create embeddings index
+print("Load embdeddings file and create embeddings index")
+EMBEDDING_FILE = '../input/embeddings/wiki-news-300d-1M/wiki-news-300d-1M.vec'
+def get_coefs(word,*arr): return word, np.asarray(arr, dtype='float32')
+embeddings_index = dict(get_coefs(*o.split(" ")) for o in open(EMBEDDING_FILE, encoding="utf8") if len(o)>100)
+
+puncts = [',', '.', '"', ':', ')', '(', '-', '!', '?', '|', ';', "'", '$', '&', '/', '[', ']', '>', '%', '=', '#', '*', '+', '\\', '•',  '~', '@', '£', 
+ '·', '_', '{', '}', '©', '^', '®', '`',  '<', '→', '°', '€', '™', '›',  '♥', '←', '×', '§', '″', '′', 'Â', '█', '½', 'à', '…', 
+ '“', '★', '”', '–', '●', 'â', '►', '−', '¢', '²', '¬', '░', '¶', '↑', '±', '¿', '▾', '═', '¦', '║', '―', '¥', '▓', '—', '‹', '─', 
+ '▒', '：', '¼', '⊕', '▼', '▪', '†', '■', '’', '▀', '¨', '▄', '♫', '☆', 'é', '¯', '♦', '¤', '▲', 'è', '¸', '¾', 'Ã', '⋅', '‘', '∞', 
+ '∙', '）', '↓', '、', '│', '（', '»', '，', '♪', '╩', '╚', '³', '・', '╦', '╣', '╔', '╗', '▬', '❤', 'ï', 'Ø', '¹', '≤', '‡', '√', ]
+
+def clean_text(x):
+    x = str(x)
+    for punct in "/-'":
+        x = x.replace(punct, ' ')
+    for punct in '&':
+        x = x.replace(punct, f' {punct} ')
+    for punct in puncts:
+        x = x.replace(punct, f' {punct} ')
+    return x
+
+train["question_text"] = train["question_text"].progress_apply(lambda x: clean_text(x))
+test["question_text"] = test["question_text"].progress_apply(lambda x: clean_text(x))
 
 # split the dataset into training and validation datasets 
 train_x, valid_x, train_y, valid_y = model_selection.train_test_split(train['question_text'], train['target'])
@@ -35,10 +81,10 @@ test_x = test['question_text']
 
 # load the pre-trained word-embedding vectors 
 # needs about 999995it to finish
-embeddings_index = {}
-for i, line in enumerate(tqdm(open('../input/embeddings/wiki-news-300d-1M/wiki-news-300d-1M.vec', encoding="utf8"))):
-    values = line.split()
-    embeddings_index[values[0]] = np.asarray(values[1:], dtype='float32')
+#embeddings_index = {}
+#for i, line in enumerate(tqdm(open('../input/embeddings/wiki-news-300d-1M/wiki-news-300d-1M.vec', encoding="utf8"))):
+#    values = line.split()
+#    embeddings_index[values[0]] = np.asarray(values[1:], dtype='float32')
 
 
 # create a tokenizer 
