@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import time
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
@@ -17,6 +18,9 @@ from keras.layers import Bidirectional, GlobalMaxPool1D, Dropout, SpatialDropout
 from keras.models import Model
 from keras import initializers, regularizers, constraints, optimizers, layers, models
 
+import tensorflow as tf
+
+
 
 ## Global Settings:
     
@@ -31,6 +35,8 @@ DROPOUT = 0.1
 
 train = pd.read_csv("../input/train.csv")
 test = pd.read_csv("../input/test.csv")
+sub = pd.read_csv(Path('../input/sample_submission.csv'))
+
 print("Train shape : ",train.shape)
 print("Test shape : ",test.shape)
 
