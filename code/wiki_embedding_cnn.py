@@ -36,7 +36,7 @@ test_x = test['question_text']
 # load the pre-trained word-embedding vectors 
 # needs about 999995it to finish
 embeddings_index = {}
-for i, line in enumerate(tqdm(open('../input/embeddings/wiki-news-300d-1M/wiki-news-300d-1M.vec'))):
+for i, line in enumerate(tqdm(open('../input/embeddings/wiki-news-300d-1M/wiki-news-300d-1M.vec', encoding="utf8"))):
     values = line.split()
     embeddings_index[values[0]] = np.asarray(values[1:], dtype='float32')
 
@@ -105,6 +105,7 @@ cnn_model.fit(train_seq_x, train_y)
 
 #make predictions
 predictions = cnn_model.predict(test_seq_x, verbose=1)
+# following line wrong?
 predictions = predictions.argmax(axis=-1)
 
 # save results to file
